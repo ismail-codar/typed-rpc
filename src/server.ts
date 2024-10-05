@@ -134,14 +134,19 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
     //The JSON sent is not a valid Request object
     return res({ error: { code: -32600, message: "Invalid Request" } });
   }
-  const { method, params } = req;
+  const procedurePath = req.method.split(".");
+  const method = procedurePath.splice(-1, 1)[0];
+  for (const proc of procedurePath) {
+    // @ts-ignore
+    service = service[proc];
+  }
   if (!hasMethod(service, method)) {
     return res({
       error: { code: -32601, message: `Method not found: ${method}` },
     });
   }
   try {
-    const result = await service[method as keyof T](...params ?? []);
+    const result = await service[method as keyof T](...(req.params ?? []));
     return res({ result });
   } catch (err) {
     if (options?.onError) {

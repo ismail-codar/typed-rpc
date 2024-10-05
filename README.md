@@ -34,8 +34,10 @@ First, define your typed service. This example shows a simple service with a sin
 // server/myService.ts
 
 export const myService = {
-  hello(name: string) {
-    return `Hello ${name}!`;
+  greeting: {
+    hello(name: string) {
+      return `Hello ${name}!`;
+    },
   },
 };
 
@@ -77,7 +79,7 @@ import type { MyService } from "../server/myService";
 
 const client = rpcClient<MyService>("/api");
 
-console.log(await client.hello("world"));
+console.log(await client.greeting.hello("world"));
 ```
 
 Once you start typing `client.` in your IDE, you'll see all your service methods and their signatures suggested for auto-completion. 🎉
@@ -252,10 +254,9 @@ Pair `typed-rpc` with [react-api-query](https://www.npmjs.com/package/react-api-
 
 ## What's new in v6
 
-* Services can now expose APIs with non-JSON types like Dates, Maps, Sets, etc. by plugging in a [transcoder](#support-for-non-json-types) like superjson.
-* Previously, typed-rpc only shipped a CommonJS build in `/lib` and Deno users would directily consume the TypeScript code in `/src`. We now use [pkgroll](https://github.com/privatenumber/pkgroll) to create a hybrid module in `/dist` with both `.mjs` and `.cjs` files.
-* We removed the previously included express adapter to align with the core philosopy of keeping things as simple as possible.
-
+- Services can now expose APIs with non-JSON types like Dates, Maps, Sets, etc. by plugging in a [transcoder](#support-for-non-json-types) like superjson.
+- Previously, typed-rpc only shipped a CommonJS build in `/lib` and Deno users would directily consume the TypeScript code in `/src`. We now use [pkgroll](https://github.com/privatenumber/pkgroll) to create a hybrid module in `/dist` with both `.mjs` and `.cjs` files.
+- We removed the previously included express adapter to align with the core philosopy of keeping things as simple as possible.
 
 ## License
 

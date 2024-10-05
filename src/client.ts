@@ -103,28 +103,26 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
     },
   };
 
-  return new Proxy(target, {
-    /* istanbul ignore next */
-    get(target, prop, receiver) {
-      if (Reflect.has(target, prop)) {
-        return Reflect.get(target, prop, receiver);
-      }
-      if (typeof prop === "symbol") return;
-      if (prop === "toJSON") return;
-      return (...args: any) => {
+  function ClientProxy(path: string) {
+    return new Proxy(() => {}, {
+      get: function (_, prop) {
+        return ClientProxy(`${path ? `${path}.` : ""}${String(prop)}`);
+      },
+      apply: function (_, __, args) {
         const ac = new AbortController();
-        const promise = sendRequest(prop.toString(), args, ac.signal);
+        const promise = sendRequest(path.toString(), args, ac.signal);
         abortControllers.set(promise, ac);
         promise
           .finally(() => {
-            // Remove the
             abortControllers.delete(promise);
           })
           .catch(() => {});
         return promise;
-      };
-    },
-  }) as typeof target & PromisifyMethods<T>;
+      },
+    }) as any as typeof target & PromisifyMethods<T>;
+  }
+
+  return ClientProxy("");
 }
 
 /**
