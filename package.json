@@ -31,6 +31,36 @@
         "types": "./dist/server.d.cts",
         "default": "./dist/server.cjs"
       }
+    },
+    "./transporters/fetch": {
+      "import": {
+        "types": "./dist/transporters/fetch.d.mts",
+        "default": "./dist/transporters/fetch.mjs"
+      },
+      "require": {
+        "types": "./dist/transporters/fetch.d.cts",
+        "default": "./dist/transporters/fetch.cjs"
+      }
+    },
+    "./transporters/ws": {
+      "import": {
+        "types": "./dist/transporters/ws.d.mts",
+        "default": "./dist/transporters/ws.mjs"
+      },
+      "require": {
+        "types": "./dist/transporters/ws.d.cts",
+        "default": "./dist/transporters/ws.cjs"
+      }
+    },
+    "./transporters/post-message": {
+      "import": {
+        "types": "./dist/transporters/post-message.d.mts",
+        "default": "./dist/transporters/post-message.mjs"
+      },
+      "require": {
+        "types": "./dist/transporters/post-message.d.cts",
+        "default": "./dist/transporters/post-message.cjs"
+      }
     }
   },
   "scripts": {

@@ -1,10 +1,45 @@
+import { fetchTransport, type FetchOptions } from "./transporters/fetch.js";
 import type {
+  JsonRpcErrorResponse,
   JsonRpcRequest,
   JsonRpcResponse,
   RpcTranscoder,
 } from "./types.js";
 
 export * from "./types.js";
+
+/**
+ * Type guard to check if a given object is a valid JSON-RPC response.
+ */
+export function isJsonRpcResponse(res: unknown): res is JsonRpcResponse {
+  if (typeof res !== "object" || res === null) return false;
+  if (!("jsonrpc" in res) || res.jsonrpc !== "2.0") return false;
+  if (
+    !("id" in res) ||
+    (typeof res.id !== "string" &&
+      typeof res.id !== "number" &&
+      res.id !== null)
+  )
+    return false;
+
+  if ("result" in res) {
+    // Check for JsonRpcSuccessResponse
+    return !("error" in res);
+  } else if ("error" in res) {
+    // Check for JsonRpcErrorResponse
+    const error = (res as JsonRpcErrorResponse).error;
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof error.code === "number" &&
+      "message" in error &&
+      typeof error.message === "string"
+    );
+  }
+
+  return false;
+}
 
 /**
  * Error class that is thrown if a remote method returns an error.
@@ -32,20 +67,9 @@ export type RpcTransport = (
   abortSignal: AbortSignal
 ) => Promise<JsonRpcResponse>;
 
-type RpcClientOptions =
-  | string
-  | (FetchOptions & {
-      transport?: RpcTransport;
-      transcoder?: RpcTranscoder<any>;
-    });
-
-type FetchOptions = {
-  url: string;
-  credentials?: RequestCredentials;
-  getHeaders?():
-    | Record<string, string>
-    | Promise<Record<string, string>>
-    | undefined;
+type RpcClientOptions = {
+  transport: RpcTransport;
+  transcoder?: RpcTranscoder<any>;
 };
 
 type Promisify<T> = T extends (...args: any[]) => Promise<any>
@@ -64,10 +88,7 @@ const identityTranscoder: RpcTranscoder<any> = {
 };
 
 export function rpcClient<T extends object>(options: RpcClientOptions) {
-  if (typeof options === "string") {
-    options = { url: options };
-  }
-  const transport = options.transport || fetchTransport(options);
+  const transport = options.transport;
   const { serialize, deserialize } = options.transcoder || identityTranscoder;
 
   /**
@@ -150,28 +171,4 @@ export function removeTrailingUndefs(values: any[]) {
   const a = [...values];
   while (a.length && a[a.length - 1] === undefined) a.length--;
   return a;
-}
-
-/**
- * Create a RpcTransport that uses the global fetch.
- */
-export function fetchTransport(options: FetchOptions): RpcTransport {
-  return async (req: JsonRpcRequest, signal: AbortSignal): Promise<any> => {
-    const headers = options?.getHeaders ? await options.getHeaders() : {};
-    const res = await fetch(options.url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...headers,
-      },
-      body: JSON.stringify(req),
-      credentials: options?.credentials,
-      signal,
-    });
-    if (!res.ok) {
-      throw new RpcError(res.statusText, res.status);
-    }
-    return await res.json();
-  };
 }
