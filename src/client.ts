@@ -1,4 +1,3 @@
-import { fetchTransport, type FetchOptions } from "./transporters/fetch.js";
 import type {
   JsonRpcErrorResponse,
   JsonRpcRequest,
