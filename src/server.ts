@@ -3,6 +3,7 @@ import type {
   JsonRpcErrorResponse,
   JsonRpcSuccessResponse,
   RpcTranscoder,
+  JsonRpcResponse,
 } from "./types.js";
 
 export * from "./types.js";
@@ -112,13 +113,31 @@ export type RpcHandlerOptions<V> = {
   getErrorCode?: (err: unknown) => number;
   getErrorMessage?: (err: unknown) => string;
   getErrorData?: (err: unknown) => unknown;
+  onEventEmit?: (data: JsonRpcResponse & { method: string }) => void;
 };
 
 export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
-  request: unknown,
+  request: JsonRpcRequest,
   service: T,
   options?: RpcHandlerOptions<V>
 ): Promise<JsonRpcErrorResponse | JsonRpcSuccessResponse> {
+  const cb_fn = request.params?.[1];
+  if (
+    request.method === "events.on" &&
+    request.params &&
+    options?.onEventEmit
+  ) {
+    request.params[1] = (...args: any[]) => {
+      cb_fn.args = args;
+      options.onEventEmit?.({
+        jsonrpc: request.jsonrpc,
+        result: cb_fn,
+        id: request.id,
+        method: request.params?.[0],
+      });
+      return cb_fn;
+    };
+  }
   const req = options?.transcoder?.deserialize(request) ?? request;
   const id = getRequestId(req);
   const res = (data: any) => {
@@ -147,6 +166,9 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
   }
   try {
     const result = await service[method as keyof T](...(req.params ?? []));
+    if (req.method === "events.on") {
+      return res({ result: cb_fn });
+    }
     return res({ result });
   } catch (err) {
     if (options?.onError) {

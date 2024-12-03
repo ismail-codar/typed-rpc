@@ -63,7 +63,8 @@ export class RpcError extends Error {
  */
 export type RpcTransport = (
   req: JsonRpcRequest,
-  abortSignal: AbortSignal
+  abortSignal: AbortSignal,
+  onEventCallback?: (data: JsonRpcResponse & { result: any }) => void
 ) => Promise<JsonRpcResponse>;
 
 type RpcClientOptions = {
@@ -98,8 +99,16 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
     args: any[],
     signal: AbortSignal
   ) => {
+    const rpcEventCallbacks: Function[] = [];
+    if (method === "events.on") {
+      rpcEventCallbacks.push(args[1]);
+      args[1] = { $cb_fn: rpcEventCallbacks.length - 1 };
+    }
     const req = createRequest(method, args);
-    const raw = await transport(serialize(req as any), signal);
+    const raw = await transport(serialize(req as any), signal, (cbData) => {
+      const fn = rpcEventCallbacks[cbData.result.$cb_fn];
+      fn.call(null, ...cbData.result.args);
+    });
     const res = deserialize(raw);
     if ("result" in res) {
       return res.result;
