@@ -214,7 +214,7 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
         parent[key] = new Date(parent[key]);
       }
     });
-    const result = await service[method](params);
+    const result = await service[method](...params);
     if (req.method === "events.on") {
       return res({ result: cb_fn });
     }
