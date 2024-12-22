@@ -9,6 +9,7 @@ export type FetchOptions = {
     | Promise<Record<string, string>>
     | undefined;
   onError?: ErrorFunctionType;
+  hasError?(json: any): Parameters<ErrorFunctionType>[0] | undefined;
 };
 
 /**
@@ -30,9 +31,18 @@ export function fetchTransport(options: FetchOptions): RpcTransport {
     });
     if (!res.ok) {
       if (options.onError)
-        options.onError(res.status.toString(), res.statusText);
+        options.onError({
+          code: res.status.toString(),
+          message: res.statusText,
+        });
       else console.error(res);
     }
-    return await res.json();
+    const json = await res.json();
+    const error = options.hasError?.(json);
+    if (error) {
+      if (options.onError) options.onError(error);
+      else console.error(res);
+    }
+    return json;
   };
 }

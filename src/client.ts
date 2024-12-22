@@ -50,11 +50,11 @@ export type RpcTransport = (
   onEventCallback?: (data: JsonRpcResponse & { result: any }) => void
 ) => Promise<JsonRpcResponse>;
 
-export type ErrorFunctionType = (
-  code: string,
-  message?: string,
-  data?: any
-) => void;
+export type ErrorFunctionType = (data: {
+  code: string;
+  message?: string;
+  data?: any;
+}) => void;
 type RpcClientOptions = {
   transport: RpcTransport;
   transcoder?: RpcTranscoder<any>;
@@ -103,10 +103,10 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
       return res.result;
     } else if ("error" in res) {
       const { code, message, data } = res.error;
-      if (options.onError) options.onError(code, message, data);
+      if (options.onError) options.onError({ code, message, data });
       else console.error({ code, message, data });
     }
-    if (options.onError) options.onError("INVALID_RESPONSE");
+    if (options.onError) options.onError({ code: "INVALID_RESPONSE" });
     else console.error("INVALID_RESPONSE");
   };
 
