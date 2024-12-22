@@ -1,9 +1,5 @@
-import { RpcError, type RpcTransport } from "../client";
-import type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-  RpcTranscoder,
-} from "../types.js";
+import { type ErrorFunctionType, type RpcTransport } from "../client";
+import type { JsonRpcRequest } from "../types.js";
 
 export type FetchOptions = {
   url: string;
@@ -12,6 +8,7 @@ export type FetchOptions = {
     | Record<string, string>
     | Promise<Record<string, string>>
     | undefined;
+  onError?: ErrorFunctionType;
 };
 
 /**
@@ -32,7 +29,9 @@ export function fetchTransport(options: FetchOptions): RpcTransport {
       signal,
     });
     if (!res.ok) {
-      throw new RpcError(res.statusText, res.status);
+      if (options.onError)
+        options.onError(res.status.toString(), res.statusText);
+      else console.error(res);
     }
     return await res.json();
   };

@@ -144,10 +144,6 @@ const res = client.hello("world");
 client.$abort(res);
 ```
 
-### Error Handling
-
-In case of an error, the client throws an `RpcError` with `message`, `code`, and optionally `data`. Customize errors with `RpcHandlerOptions` or provide an `onError` handler for logging.
-
 For internal errors (invalid request, method not found), the error code follows [the specs](https://www.jsonrpc.org/specification#error_object).
 
 ### CORS Credentials

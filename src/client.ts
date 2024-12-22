@@ -41,23 +41,6 @@ export function isJsonRpcResponse(res: unknown): res is JsonRpcResponse {
 }
 
 /**
- * Error class that is thrown if a remote method returns an error.
- */
-export class RpcError extends Error {
-  code: number;
-  data?: unknown;
-
-  constructor(message: string, code: number, data?: unknown) {
-    super(message);
-    this.name = "RpcError";
-    this.code = code;
-    this.data = data;
-    // https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-    Object.setPrototypeOf(this, RpcError.prototype);
-  }
-}
-
-/**
  * Interface for custom transports. Implementations are expected to serialize
  * the given request and return an object that is a JsonRpcResponse.
  */
@@ -67,9 +50,15 @@ export type RpcTransport = (
   onEventCallback?: (data: JsonRpcResponse & { result: any }) => void
 ) => Promise<JsonRpcResponse>;
 
+export type ErrorFunctionType = (
+  code: string,
+  message?: string,
+  data?: any
+) => void;
 type RpcClientOptions = {
   transport: RpcTransport;
   transcoder?: RpcTranscoder<any>;
+  onError?: ErrorFunctionType;
 };
 
 type Promisify<T> = T extends (...args: any[]) => Promise<any>
@@ -114,9 +103,11 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
       return res.result;
     } else if ("error" in res) {
       const { code, message, data } = res.error;
-      throw new RpcError(message, code, data);
+      if (options.onError) options.onError(code, message, data);
+      else console.error({ code, message, data });
     }
-    throw new TypeError("Invalid response");
+    if (options.onError) options.onError("INVALID_RESPONSE");
+    else console.error("INVALID_RESPONSE");
   };
 
   // Map of AbortControllers to abort pending requests

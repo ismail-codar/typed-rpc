@@ -2,7 +2,6 @@ import {
   type JsonRpcResponse,
   type RpcTransport,
   isJsonRpcResponse,
-  RpcError,
 } from "../client.js";
 
 export type WebSocketTransportOptions = {
@@ -33,7 +32,7 @@ export type WebSocketTransportOptions = {
 
 type PendingResponse = {
   resolve: (res: JsonRpcResponse) => void;
-  reject: (err: RpcError) => void;
+  reject: (err: Error) => void;
   timeoutId?: ReturnType<typeof setTimeout>;
 };
 
@@ -114,7 +113,7 @@ export function websocketTransport(
 
       if (timeout > 0) {
         pending.timeoutId = setTimeout(() => {
-          reject(new RpcError("Request timed out", -32000));
+          reject(new Error("Request timed out", { cause: -32000 }));
         }, timeout);
       }
 
@@ -122,7 +121,7 @@ export function websocketTransport(
         if (pending.timeoutId) {
           clearTimeout(pending.timeoutId);
         }
-        reject(new RpcError("Request aborted", -32000));
+        reject(new Error("Request aborted", { cause: -32000 }));
       };
 
       pendingResponses.set(requestId, pending);
