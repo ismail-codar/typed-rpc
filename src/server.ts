@@ -116,6 +116,48 @@ export type RpcHandlerOptions<V> = {
   onEventEmit?: (data: JsonRpcResponse & { method: string }) => void;
 };
 
+function traverseJson(
+  jsonObj: any,
+  callback: (parent: any, key: string) => void
+) {
+  // Stack yapısı
+  const stack: any[] = [];
+
+  // Ana JSON objesi başlangıçta stack'e eklenir
+  stack.push({ parent: null, key: null, value: jsonObj });
+
+  // Stack boş olana kadar devam et
+  while (stack.length > 0) {
+    const current = stack.pop(); // Stack'ten en üstteki elemanı al
+    const { parent, key, value } = current; // Parent, key ve value'yu çıkar
+
+    // Callback'i çağır (ebeveyn obje ve anahtar için)
+    if (parent && key) callback(parent, key);
+
+    // Eğer obje veya dizi değilse (terminal bir düğüm) devam etme
+    if (typeof value !== "object" || value === null) {
+      continue;
+    }
+
+    // Obje veya dizinin her bir anahtarını işle
+    for (const childKey in value) {
+      if (value.hasOwnProperty(childKey)) {
+        stack.push({ parent: value, key: childKey, value: value[childKey] }); // Alt objeyi stack'e ekle
+      }
+    }
+  }
+}
+const isoDateRegex =
+  /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?(Z|([+-](0[0-9]|1[0-3]):[0-5]\d))?)?$/;
+const isoDateLengths = [10, 20, 24, 29];
+const isIsoDate = (value: any) => {
+  return (
+    typeof value === "string" &&
+    isoDateLengths.includes(value.length) &&
+    isoDateRegex.test(value)
+  );
+};
+
 export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
   request: JsonRpcRequest,
   service: T,
@@ -165,7 +207,14 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
     });
   }
   try {
-    const result = await service[method as keyof T](...(req.params ?? []));
+    const params = req.params ?? [];
+    traverseJson(params, (parent, key) => {
+      console.log(key);
+      if (isIsoDate(parent[key])) {
+        parent[key] = new Date(parent[key]);
+      }
+    });
+    const result = await service[method](params);
     if (req.method === "events.on") {
       return res({ result: cb_fn });
     }
