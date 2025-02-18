@@ -17,15 +17,16 @@ export type FetchOptions = {
  */
 export function fetchTransport(options: FetchOptions): RpcTransport {
   return async (req: JsonRpcRequest, signal: AbortSignal): Promise<any> => {
+    const { method, ...request } = req;
     const headers = options?.getHeaders ? await options.getHeaders() : {};
-    const res = await fetch(options.url, {
+    const res = await fetch(options.url + "/" + method, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
         ...headers,
       },
-      body: JSON.stringify(req),
+      body: JSON.stringify(request),
       credentials: options?.credentials,
       signal,
     });

@@ -3,6 +3,7 @@ export interface JsonRpcRequest {
   id?: string | number | null;
   method: string;
   params?: any[];
+  extra?: any;
 }
 
 export interface BaseJsonRpcResponse {
