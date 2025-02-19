@@ -215,7 +215,7 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
       }
     });
     if (req.extra) {
-      params.splice(0, 0, req.extra);
+      params.push(req.extra);
     }
     const result = await service[method](...params);
     if (req.method === "events.on") {
