@@ -1,18 +1,5 @@
 'use strict';
 
-function isJsonRpcResponse(res) {
-  if (typeof res !== "object" || res === null) return false;
-  if (!("jsonrpc" in res) || res.jsonrpc !== "2.0") return false;
-  if (!("id" in res) || typeof res.id !== "string" && typeof res.id !== "number" && res.id !== null)
-    return false;
-  if ("result" in res) {
-    return !("error" in res);
-  } else if ("error" in res) {
-    const error = res.error;
-    return typeof error === "object" && error !== null && "code" in error && typeof error.code === "number" && "message" in error && typeof error.message === "string";
-  }
-  return false;
-}
 const identityTranscoder = {
   serialize: (data) => data,
   deserialize: (data) => data
@@ -81,7 +68,6 @@ function removeTrailingUndefs(values) {
 }
 
 exports.createRequest = createRequest;
-exports.isJsonRpcResponse = isJsonRpcResponse;
 exports.removeTrailingUndefs = removeTrailingUndefs;
 exports.rpcClient = rpcClient;
 //# sourceMappingURL=client.cjs.map

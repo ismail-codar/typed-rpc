@@ -1,10 +1,6 @@
-import { a as JsonRpcResponse, J as JsonRpcRequest, R as RpcTranscoder } from './types-7fIUzIha.js';
+import { J as JsonRpcRequest, a as JsonRpcResponse, R as RpcTranscoder } from './types-7fIUzIha.js';
 export { B as BaseJsonRpcResponse, b as JsonRpcErrorResponse, c as JsonRpcSuccessResponse } from './types-7fIUzIha.js';
 
-/**
- * Type guard to check if a given object is a valid JSON-RPC response.
- */
-declare function isJsonRpcResponse(res: unknown): res is JsonRpcResponse;
 /**
  * Interface for custom transports. Implementations are expected to serialize
  * the given request and return an object that is a JsonRpcResponse.
@@ -42,4 +38,4 @@ declare function createRequest(method: string, params?: any[]): JsonRpcRequest;
  */
 declare function removeTrailingUndefs(values: any[]): any[];
 
-export { type ErrorFunctionType, JsonRpcRequest, JsonRpcResponse, RpcTranscoder, type RpcTransport, createRequest, isJsonRpcResponse, removeTrailingUndefs, rpcClient };
+export { type ErrorFunctionType, JsonRpcRequest, JsonRpcResponse, RpcTranscoder, type RpcTransport, createRequest, removeTrailingUndefs, rpcClient };

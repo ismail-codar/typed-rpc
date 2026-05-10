@@ -1,44 +1,10 @@
 import type {
-  JsonRpcErrorResponse,
   JsonRpcRequest,
   JsonRpcResponse,
   RpcTranscoder,
 } from "./types.js";
 
 export * from "./types.js";
-
-/**
- * Type guard to check if a given object is a valid JSON-RPC response.
- */
-export function isJsonRpcResponse(res: unknown): res is JsonRpcResponse {
-  if (typeof res !== "object" || res === null) return false;
-  if (!("jsonrpc" in res) || res.jsonrpc !== "2.0") return false;
-  if (
-    !("id" in res) ||
-    (typeof res.id !== "string" &&
-      typeof res.id !== "number" &&
-      res.id !== null)
-  )
-    return false;
-
-  if ("result" in res) {
-    // Check for JsonRpcSuccessResponse
-    return !("error" in res);
-  } else if ("error" in res) {
-    // Check for JsonRpcErrorResponse
-    const error = (res as JsonRpcErrorResponse).error;
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      typeof error.code === "number" &&
-      "message" in error &&
-      typeof error.message === "string"
-    );
-  }
-
-  return false;
-}
 
 /**
  * Interface for custom transports. Implementations are expected to serialize
