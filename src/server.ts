@@ -221,7 +221,7 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
     if (req.method === "events.on") {
       return res({ result: cb_fn });
     }
-    return res({ result: result ?? null });
+    return res(result ?? null);
   } catch (err) {
     if (options?.onError) {
       options.onError(err);
