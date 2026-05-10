@@ -22,8 +22,10 @@ function fetchTransport(options) {
           message: res.statusText
         });
       else console.error(res);
+      return;
     }
-    const json = await res.json();
+    const text = await res.text();
+    const json = text ? JSON.parse(text) : void 0;
     const error = options.hasError?.(json);
     if (error) {
       if (options.onError) options.onError(error);

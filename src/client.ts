@@ -79,7 +79,8 @@ function createFetchTransport(opts: RpcClientOptions): RpcTransport {
     if (!res.ok) {
       throw new RpcError(res.statusText, res.status);
     }
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : undefined;
   };
 }
 

@@ -114,7 +114,7 @@ async function handleRpc(request, service, options) {
     if (req.method === "events.on") {
       return res({ result: cb_fn });
     }
-    return options?.transcoder?.serialize(result) ?? result;
+    return res({ result: result ?? null });
   } catch (err) {
     if (options?.onError) {
       options.onError(err);

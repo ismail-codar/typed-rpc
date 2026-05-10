@@ -31,7 +31,8 @@ function createFetchTransport(opts) {
     if (!res.ok) {
       throw new RpcError(res.statusText, res.status);
     }
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : void 0;
   };
 }
 function rpcClient(options) {
