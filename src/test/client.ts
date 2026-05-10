@@ -62,10 +62,7 @@ tap.test("should support custom transports", async (t) => {
   const client = rpcClient<Service>({
     url: "n/a",
     transport: async (req) => {
-      return {
-        jsonrpc: "2.0",
-        result: "Custom!",
-      };
+      return "Custom!" as any;
     },
   });
   const result = await client.hello("world");
@@ -87,19 +84,6 @@ tap.test("should support custom transcoders", async (t) => {
   });
   const date = await client.startOfEpoch();
   t.type(date, Date);
-});
-
-tap.test("should fail on invalid response", async (t) => {
-  const client = rpcClient<Service>({
-    url: "n/a",
-    transport: async (req) => {
-      return {
-        invalid: "",
-      } as any;
-    },
-  });
-  const res = client.hello("world");
-  t.rejects(res);
 });
 
 tap.test("should abort", async (t) => {

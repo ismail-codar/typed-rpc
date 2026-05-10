@@ -1,5 +1,5 @@
-import { J as JsonRpcRequest, R as RpcTranscoder, a as JsonRpcResponse, b as JsonRpcErrorResponse, c as JsonRpcSuccessResponse } from './types-7fIUzIha.js';
-export { B as BaseJsonRpcResponse } from './types-7fIUzIha.js';
+import { J as JsonRpcRequest, R as RpcTranscoder, a as JsonRpcResponse, b as JsonRpcErrorResponse, c as JsonRpcSuccessResponse } from './types-Dpasj_E9.js';
+export { B as BaseJsonRpcResponse } from './types-Dpasj_E9.js';
 
 /**
  * Type guard to check if a given object is a valid JSON-RPC request.

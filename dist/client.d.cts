@@ -1,5 +1,5 @@
-import { J as JsonRpcRequest, a as JsonRpcResponse, R as RpcTranscoder } from './types-7fIUzIha.js';
-export { B as BaseJsonRpcResponse, b as JsonRpcErrorResponse, c as JsonRpcSuccessResponse } from './types-7fIUzIha.js';
+import { J as JsonRpcRequest, a as JsonRpcResponse, R as RpcTranscoder } from './types-Dpasj_E9.js';
+export { B as BaseJsonRpcResponse, b as JsonRpcErrorResponse, c as JsonRpcSuccessResponse } from './types-Dpasj_E9.js';
 
 /**
  * Error class that is thrown if a remote method returns an error.
@@ -11,7 +11,7 @@ declare class RpcError extends Error {
 }
 type RpcTransport = (req: JsonRpcRequest, abortSignal: AbortSignal, onEventCallback?: (data: JsonRpcResponse & {
     result: any;
-}) => void) => Promise<JsonRpcResponse>;
+}) => void) => Promise<any>;
 type ErrorFunctionType = (data: {
     code: string;
     message?: string;

@@ -1,5 +1,5 @@
 import { RpcTransport } from '../client.cjs';
-import '../types-7fIUzIha.js';
+import '../types-Dpasj_E9.js';
 
 declare function postMessageTransport({ serverWindow, clientWindow, }: {
     serverWindow: Window;

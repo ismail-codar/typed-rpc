@@ -52,7 +52,7 @@ function rpcClient(options) {
       fn.call(null, ...cbData.result.args);
     });
     const res = deserialize(raw);
-    if ("error" in res) {
+    if (typeof res === "object" && res !== null && "error" in res) {
       const { code, message, data } = res.error;
       throw new RpcError(message, code, data);
     }

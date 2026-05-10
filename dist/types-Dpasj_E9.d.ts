@@ -17,7 +17,7 @@ interface JsonRpcErrorResponse extends BaseJsonRpcResponse {
     };
 }
 interface JsonRpcSuccessResponse extends BaseJsonRpcResponse {
-    result: any;
+    result?: any;
 }
 type JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse;
 type RpcTranscoder<T> = {

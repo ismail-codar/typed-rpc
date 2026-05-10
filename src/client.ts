@@ -27,7 +27,7 @@ export type RpcTransport = (
   req: JsonRpcRequest,
   abortSignal: AbortSignal,
   onEventCallback?: (data: JsonRpcResponse & { result: any }) => void
-) => Promise<JsonRpcResponse>;
+) => Promise<any>;
 
 export type ErrorFunctionType = (data: {
   code: string;
@@ -105,11 +105,11 @@ export function rpcClient<T extends object>(options: string | RpcClientOptions) 
       fn.call(null, ...cbData.result.args);
     });
     const res = deserialize(raw);
-    if ("error" in res) {
-      const { code, message, data } = res.error;
+    if (typeof res === "object" && res !== null && "error" in res) {
+      const { code, message, data } = (res as any).error;
       throw new RpcError(message, code, data);
     }
-    return res
+    return res;
   };
 
   // Map of AbortControllers to abort pending requests

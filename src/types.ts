@@ -20,7 +20,7 @@ export interface JsonRpcErrorResponse extends BaseJsonRpcResponse {
 }
 
 export interface JsonRpcSuccessResponse extends BaseJsonRpcResponse {
-  result: any;
+  result?: any;
 }
 
 export type JsonRpcResponse = JsonRpcSuccessResponse | JsonRpcErrorResponse;

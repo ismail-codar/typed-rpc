@@ -1,5 +1,5 @@
 import { RpcTransport } from '../client.mjs';
-import '../types-7fIUzIha.js';
+import '../types-Dpasj_E9.js';
 
 type WebSocketTransportOptions = {
     /**

@@ -1,5 +1,5 @@
 import { ErrorFunctionType, RpcTransport } from '../client.cjs';
-import '../types-7fIUzIha.js';
+import '../types-Dpasj_E9.js';
 
 type FetchOptions = {
     url: string;
