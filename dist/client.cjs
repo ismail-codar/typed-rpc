@@ -56,7 +56,7 @@ function rpcClient(options) {
       const { code, message, data } = res.error;
       throw new RpcError(message, code, data);
     }
-    throw new TypeError("Invalid response");
+    return res;
   };
   const abortControllers = /* @__PURE__ */ new WeakMap();
   const target = {

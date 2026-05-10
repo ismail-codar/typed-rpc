@@ -7,7 +7,7 @@ function isJsonRpcResponse(res) {
     const error = res.error;
     return typeof error === "object" && error !== null && "code" in error && typeof error.code === "number" && "message" in error && typeof error.message === "string";
   }
-  return false;
+  return true;
 }
 function websocketTransport(options) {
   const pendingResponses = /* @__PURE__ */ new Map();

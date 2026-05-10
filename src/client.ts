@@ -109,7 +109,7 @@ export function rpcClient<T extends object>(options: string | RpcClientOptions) 
       const { code, message, data } = res.error;
       throw new RpcError(message, code, data);
     }
-    throw new TypeError("Invalid response");
+    return res
   };
 
   // Map of AbortControllers to abort pending requests

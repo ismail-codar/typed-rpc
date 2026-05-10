@@ -21,7 +21,7 @@ function isJsonRpcResponse(res: unknown): res is JsonRpcResponse {
       typeof error.message === "string"
     );
   }
-  return false;
+  return true;
 }
 
 export type WebSocketTransportOptions = {
