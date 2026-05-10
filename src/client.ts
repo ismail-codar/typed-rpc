@@ -7,9 +7,22 @@ import type {
 export * from "./types.js";
 
 /**
- * Interface for custom transports. Implementations are expected to serialize
- * the given request and return an object that is a JsonRpcResponse.
+ * Error class that is thrown if a remote method returns an error.
  */
+export class RpcError extends Error {
+  code: number;
+  data?: unknown;
+
+  constructor(message: string, code: number, data?: unknown) {
+    super(message);
+    this.name = "RpcError";
+    this.code = code;
+    this.data = data;
+    // https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+    Object.setPrototypeOf(this, RpcError.prototype);
+  }
+}
+
 export type RpcTransport = (
   req: JsonRpcRequest,
   abortSignal: AbortSignal,
@@ -21,10 +34,16 @@ export type ErrorFunctionType = (data: {
   message?: string;
   data?: any;
 }) => void;
+
 type RpcClientOptions = {
-  transport: RpcTransport;
+  url?: string;
+  credentials?: RequestCredentials;
+  getHeaders?():
+    | Record<string, string>
+    | Promise<Record<string, string>>
+    | undefined;
+  transport?: RpcTransport;
   transcoder?: RpcTranscoder<any>;
-  onError?: ErrorFunctionType;
 };
 
 type Promisify<T> = T extends (...args: any[]) => Promise<any>
@@ -42,13 +61,34 @@ const identityTranscoder: RpcTranscoder<any> = {
   deserialize: (data) => data,
 };
 
-export function rpcClient<T extends object>(options: RpcClientOptions) {
-  const transport = options.transport;
-  const { serialize, deserialize } = options.transcoder || identityTranscoder;
+function createFetchTransport(opts: RpcClientOptions): RpcTransport {
+  return async (req: JsonRpcRequest, signal: AbortSignal): Promise<any> => {
+    const { method, ...request } = req;
+    const headers = opts.getHeaders ? await opts.getHeaders() : {};
+    const res = await fetch(opts.url! + "/" + method, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: JSON.stringify(request),
+      credentials: opts.credentials,
+      signal,
+    });
+    if (!res.ok) {
+      throw new RpcError(res.statusText, res.status);
+    }
+    return res.json();
+  };
+}
 
-  /**
-   * Send a request using the configured transport and handle the result.
-   */
+export function rpcClient<T extends object>(options: string | RpcClientOptions) {
+  const opts: RpcClientOptions =
+    typeof options === "string" ? { url: options } : options;
+  const transport = opts.transport ?? createFetchTransport(opts);
+  const { serialize, deserialize } = opts.transcoder || identityTranscoder;
+
   const sendRequest = async (
     method: string,
     args: any[],
@@ -69,11 +109,9 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
       return res.result;
     } else if ("error" in res) {
       const { code, message, data } = res.error;
-      if (options.onError) options.onError({ code, message, data });
-      else console.error({ code, message, data });
+      throw new RpcError(message, code, data);
     }
-    if (options.onError) options.onError({ code: "INVALID_RESPONSE" });
-    else console.error("INVALID_RESPONSE");
+    throw new TypeError("Invalid response");
   };
 
   // Map of AbortControllers to abort pending requests
@@ -92,6 +130,9 @@ export function rpcClient<T extends object>(options: RpcClientOptions) {
   function ClientProxy(path: string) {
     return new Proxy(() => {}, {
       get: function (_, prop) {
+        if (!path && prop in target) {
+          return target[prop as keyof typeof target];
+        }
         return ClientProxy(`${path ? `${path}.` : ""}${String(prop)}`);
       },
       apply: function (_, __, args) {

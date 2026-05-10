@@ -1,10 +1,43 @@
+class RpcError extends Error {
+  code;
+  data;
+  constructor(message, code, data) {
+    super(message);
+    this.name = "RpcError";
+    this.code = code;
+    this.data = data;
+    Object.setPrototypeOf(this, RpcError.prototype);
+  }
+}
 const identityTranscoder = {
   serialize: (data) => data,
   deserialize: (data) => data
 };
+function createFetchTransport(opts) {
+  return async (req, signal) => {
+    const { method, ...request } = req;
+    const headers = opts.getHeaders ? await opts.getHeaders() : {};
+    const res = await fetch(opts.url + "/" + method, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...headers
+      },
+      body: JSON.stringify(request),
+      credentials: opts.credentials,
+      signal
+    });
+    if (!res.ok) {
+      throw new RpcError(res.statusText, res.status);
+    }
+    return res.json();
+  };
+}
 function rpcClient(options) {
-  const transport = options.transport;
-  const { serialize, deserialize } = options.transcoder || identityTranscoder;
+  const opts = typeof options === "string" ? { url: options } : options;
+  const transport = opts.transport ?? createFetchTransport(opts);
+  const { serialize, deserialize } = opts.transcoder || identityTranscoder;
   const sendRequest = async (method, args, signal) => {
     const rpcEventCallbacks = [];
     if (method === "events.on") {
@@ -21,17 +54,27 @@ function rpcClient(options) {
       return res.result;
     } else if ("error" in res) {
       const { code, message, data } = res.error;
-      if (options.onError) options.onError({ code, message, data });
-      else console.error({ code, message, data });
+      throw new RpcError(message, code, data);
     }
-    if (options.onError) options.onError({ code: "INVALID_RESPONSE" });
-    else console.error("INVALID_RESPONSE");
+    throw new TypeError("Invalid response");
   };
   const abortControllers = /* @__PURE__ */ new WeakMap();
+  const target = {
+    /**
+     * Abort the request for the given promise.
+     */
+    $abort: (promise) => {
+      const ac = abortControllers.get(promise);
+      ac?.abort();
+    }
+  };
   function ClientProxy(path) {
     return new Proxy(() => {
     }, {
       get: function(_, prop) {
+        if (!path && prop in target) {
+          return target[prop];
+        }
         return ClientProxy(`${path ? `${path}.` : ""}${String(prop)}`);
       },
       apply: function(_, __, args) {
@@ -65,5 +108,5 @@ function removeTrailingUndefs(values) {
   return a;
 }
 
-export { createRequest, removeTrailingUndefs, rpcClient };
+export { RpcError, createRequest, removeTrailingUndefs, rpcClient };
 //# sourceMappingURL=client.mjs.map
