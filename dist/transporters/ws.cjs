@@ -5,7 +5,6 @@ function isJsonRpcResponse(res) {
   if (!("jsonrpc" in res) || res.jsonrpc !== "2.0") return false;
   if (!("id" in res) || typeof res.id !== "string" && typeof res.id !== "number" && res.id !== null)
     return false;
-  if ("result" in res) return !("error" in res);
   if ("error" in res) {
     const error = res.error;
     return typeof error === "object" && error !== null && "code" in error && typeof error.code === "number" && "message" in error && typeof error.message === "string";

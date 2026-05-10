@@ -10,7 +10,6 @@ function isJsonRpcResponse(res: unknown): res is JsonRpcResponse {
       res.id !== null)
   )
     return false;
-  if ("result" in res) return !("error" in res);
   if ("error" in res) {
     const error = (res as JsonRpcErrorResponse).error;
     return (
