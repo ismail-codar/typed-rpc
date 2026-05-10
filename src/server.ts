@@ -183,12 +183,11 @@ export async function handleRpc<T extends RpcService<T, V>, V = JsonValue>(
   const req = options?.transcoder?.deserialize(request) ?? request;
   const id = getRequestId(req);
   const res = (data: any) => {
-    const raw = {
+    return options?.transcoder?.serialize({
       jsonrpc: "2.0",
       id,
       ...data,
-    };
-    return options?.transcoder?.serialize(raw) ?? raw;
+    }) ?? data;
   };
 
   if (!isJsonRpcRequest(req)) {

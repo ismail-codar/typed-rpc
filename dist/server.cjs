@@ -79,12 +79,11 @@ async function handleRpc(request, service, options) {
   const req = options?.transcoder?.deserialize(request) ?? request;
   const id = getRequestId(req);
   const res = (data) => {
-    const raw = {
+    return options?.transcoder?.serialize({
       jsonrpc: "2.0",
       id,
       ...data
-    };
-    return options?.transcoder?.serialize(raw) ?? raw;
+    }) ?? data;
   };
   if (!isJsonRpcRequest(req)) {
     return res({ error: { code: -32600, message: "Invalid Request" } });
